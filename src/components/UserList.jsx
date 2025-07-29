@@ -1,16 +1,26 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import React, { useEffect, useState, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const UserList = () => {
+  const { user } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sortAsc, setSortAsc] = useState(true);
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/getAllUsers`);
-      setUsers(res.data?.users || []);
+      const res = await axios.get('https://freeapi.hashnode.space/api/profile/users', {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      setUsers(res.data.users);
+      setLoading(false);
     } catch (error) {
-      toast.error("Failed to load users.");
+      toast.error('Failed to load users');
+      setLoading(false);
     }
   };
 
@@ -18,36 +28,76 @@ const UserList = () => {
     fetchUsers();
   }, []);
 
-  return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white shadow-md rounded-xl p-6">
-      <h2 className="text-2xl font-bold text-center mb-4">All Registered Users</h2>
+  const handleRemove = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this user?')) return;
 
-      {users.length === 0 ? (
-        <p className="text-center text-gray-500">No users found.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto border">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="px-4 py-2 border">#</th>
-                <th className="px-4 py-2 border">Username</th>
-                <th className="px-4 py-2 border">Email</th>
-                <th className="px-4 py-2 border">Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, index) => (
-                <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 border">{index + 1}</td>
-                  <td className="px-4 py-2 border">{user.username}</td>
-                  <td className="px-4 py-2 border">{user.email}</td>
-                  <td className="px-4 py-2 border capitalize">{user.role}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    try {
+      await axios.delete(`https://freeapi.hashnode.space/api/profile/deleteUser/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      setUsers(users.filter((u) => u._id !== id));
+      toast.success('User removed successfully');
+    } catch (error) {
+      toast.error('Failed to remove user');
+    }
+  };
+
+  const handleSort = () => {
+    const sorted = [...users].sort((a, b) =>
+      sortAsc
+        ? a.username.localeCompare(b.username)
+        : b.username.localeCompare(a.username)
+    );
+    setUsers(sorted);
+    setSortAsc(!sortAsc);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-lg font-semibold">Loading users...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">All Users</h2>
+          <button
+            onClick={handleSort}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          >
+            Sort by Name ({sortAsc ? 'A-Z' : 'Z-A'})
+          </button>
         </div>
-      )}
+
+        <div className="space-y-4">
+          {users.map((u) => (
+            <div
+              key={u._id}
+              className="flex justify-between items-center bg-gray-50 p-4 rounded-md shadow-sm"
+            >
+              <div>
+                <p className="font-semibold">{u.username}</p>
+                <p className="text-sm text-gray-500">{u.email}</p>
+                <p className="text-xs text-gray-400">Role: {u.role}</p>
+              </div>
+
+              <button
+                onClick={() => handleRemove(u._id)}
+                className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,88 +1,68 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState } from "react";
 import axios from "axios";
-import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const UpdateForm = () => {
-  const { user, setUser } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    username: user?.username || "",
-    email: user?.email || "",
     password: "",
+    role: user.role,
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/updateUser/${user._id}`,
-        formData
-      );
-
-      const updatedUser = res.data?.user;
-      if (updatedUser) {
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        toast.success("Profile updated successfully!");
-      }
+      await axios.put(`https://freeapi.hashnode.space/updateUser/${user._id}`, formData);
+      toast.success("Profile updated successfully!");
+      navigate("/profile");
     } catch (error) {
-      toast.error("Update failed. Please try again.");
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleUpdate}
-      className="max-w-md mx-auto mt-8 bg-white shadow-md rounded-lg p-6 space-y-4"
-    >
-      <h2 className="text-xl font-semibold text-center">Update Profile</h2>
-
-      <input
-        type="text"
-        name="username"
-        value={formData.username}
-        onChange={handleChange}
-        placeholder="New Username"
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="New Email"
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      <input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="New Password"
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      <button
-        type="submit"
-        className="w-full bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600 transition"
-      >
-        Update
-      </button>
-    </form>
+    <div className="max-w-md mx-auto mt-16 bg-white p-8 rounded-xl shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">Update Profile</h2>
+      <form onSubmit={handleUpdate} className="space-y-4">
+        <input
+          type="password"
+          name="password"
+          placeholder="New Password"
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded focus:outline-none focus:ring"
+          required
+        />
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded focus:outline-none focus:ring"
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 transition"
+        >
+          {loading ? "Updating..." : "Update"}
+        </button>
+      </form>
+    </div>
   );
 };
 

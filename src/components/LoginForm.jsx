@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext'; // 👈 Add this line
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const { setUser } = useContext(AuthContext); // 👈 Use setUser from context
 
   const [formData, setFormData] = useState({
     email: '',
@@ -34,12 +36,15 @@ const LoginForm = () => {
 
     try {
       const { data } = await axios.request(options);
-
-      if (data.success && data.data.token) {
-        localStorage.setItem('authToken', data.data.token);
+     console.log("Full api response:" , data)
+      console.log("Full api response:" , data.data.user)
+      if (data.success && data.data.accessToken) {
+        localStorage.setItem('authToken', data.data.accessToken);
         localStorage.setItem('user', JSON.stringify(data.data.user));
-        // toast.success(`Welcome ${data.data.user.username}`);
-        setTimeout(() => navigate('/'), 1500);
+
+        setUser(data.data.user); // 👈 Very important!
+        toast.success(`Welcome ${data.data.user.username}`);
+        setTimeout(() => navigate('/home'), 1500); // 👈 Make sure route is correct
       } else {
         toast.error(data.message || 'Login failed');
       }

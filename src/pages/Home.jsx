@@ -5,75 +5,52 @@ import { Link } from "react-router-dom";
 const Home = () => {
   const { user, logout } = useContext(AuthContext);
 
+  if (!user) {
+    return <div className="text-center mt-10">Loading user data...</div>;
+  }
+
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow-md rounded-xl text-center space-y-4">
-      <h1 className="text-3xl font-bold">
-        Welcome, {user?.username || "Guest"}!
-      </h1>
+    <div className="max-w-2xl mx-auto mt-10 p-6 border rounded-xl shadow">
+      <h1 className="text-3xl font-bold mb-4">Welcome, {user.username} 👋</h1>
+      <p className="mb-4">
+        You are logged in as:{" "}
+        <span className="font-semibold capitalize">{user.role}</span>
+      </p>
+      <p className="mb-4">Email: {user.email}</p>
+      <div className="flex flex-wrap gap-3 mt-6">
+        <Link to="/update-profile">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Edit Your Info
+          </button>
+        </Link>
 
-      {user ? (
-        <>
-          <p className="text-gray-600">
-            You're logged in as <strong>{user?.role}</strong>.
-          </p>
-
-          <div className="flex justify-center gap-4 flex-wrap mt-4">
-            <Link
-              to="/profile"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              View Profile
+        {user.role === "ADMIN" && (
+          <>
+            <Link to="/ADMIN">
+              <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                Admin Panel
+              </button>
             </Link>
-
-            <Link
-              to="/update"
-              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-            >
-              Update Info
+            <Link to="/ManageUsers">
+              <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Manage Users
+              </button>
             </Link>
-
-            {user?.role?.toLowerCase() === "admin" && (
-              <>
-                <Link
-                  to="/admin"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-                >
-                  Admin Panel
-                </Link>
-
-                <Link
-                  to="/users"
-                  className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-                >
-                  View All Users
-                </Link>
-              </>
-            )}
-
-            <button
-              onClick={logout}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-            >
-              Logout
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="space-x-4">
-          <Link
-            to="/login"
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            Login
-          </Link>
-          <Link
-            to="/register"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Register
-          </Link>
-        </div>
-      )}
+            <Link to="/AddUser">
+              <button className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
+                Add User
+              </button>
+            </Link>
+          </>
+        )}
+    
+        <button
+          onClick={logout}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 };
