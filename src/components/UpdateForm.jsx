@@ -10,7 +10,7 @@ const UpdateForm = () => {
 
   const [formData, setFormData] = useState({
     password: "",
-    role: user.role,
+    role: user?.role || "user",
   });
 
   const [loading, setLoading] = useState(false);
@@ -23,11 +23,20 @@ const UpdateForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`https://freeapi.hashnode.space/updateUser/${user._id}`, formData);
+      await axios.put(
+        `https://freeapi.hashnode.space/api/user/${user?.id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
       toast.success("Profile updated successfully!");
       navigate("/profile");
     } catch (error) {
       toast.error("Failed to update profile");
+      console.error("Update error:", error.response?.data || error.message);
     } finally {
       setLoading(false);
     }
@@ -41,6 +50,7 @@ const UpdateForm = () => {
           type="password"
           name="password"
           placeholder="New Password"
+          value={formData.password}
           onChange={handleChange}
           className="w-full border px-4 py-2 rounded focus:outline-none focus:ring"
           required

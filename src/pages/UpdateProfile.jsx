@@ -6,45 +6,54 @@ import { useNavigate } from "react-router-dom";
 
 const UpdateProfile = () => {
   const { user, setUser } = useContext(AuthContext);
-  const [username, setUsername] = useState(user.username || "");
-  const [email, setEmail] = useState(user.email || "");
+  const [username, setUsername] = useState(user?.username || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+const handleUpdate = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
+  // Debug logs
+  console.log("User:", user);
+  console.log("Sending to:", `https://freeapi.hashnode.space/api/user/${user?.id}`);
+  console.log("Token:", user?.token);
+  console.log("Data:", {
+    username,
+    email,
+    password: password || undefined,
+  });
 
-    if (!username || !email) {
-      toast.error("Username and email are required");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const { data } = await axios.post(
-        "https://freeapi.hashnode.space/api/updateUser/ ${user.id}",
-        {
-          username,
-          email,
-          password: password || undefined, // Only send password if user provided it
+  try {
+    const { data } = await axios.put(
+      `https://freeapi.hashnode.space/api/user/${user?.id}`,
+      {
+        username,
+        email,
+        password: password || undefined,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${user.accessToken}`,
-          },
-        }
-      );
+      }
+    );
 
-      toast.success("Profile updated successfully!");
-      setUser({ ...user, username: data.user.username, email: data.user.email });
-      navigate("/profile");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.success("Profile updated successfully!");
+    setUser({
+      ...user,
+      username: data.user.username,
+      email: data.user.email,
+    });
+    navigate("/profile");
+  } catch (error) {
+    console.error("Update Error:", error.response?.data || error.message);
+    toast.error(error.response?.data?.message || "Failed to update profile");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-xl shadow-md">
