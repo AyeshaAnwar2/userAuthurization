@@ -17,7 +17,7 @@ const handleUpdate = async (e) => {
 
   // Debug logs
   console.log("User:", user);
-  console.log("Sending to:", `https://freeapi.hashnode.space/api/user/${user?.id}`);
+  console.log("Sending to:", `https://freeapi.hashnode.space/api/user/${user._id}`);
   console.log("Token:", user?.token);
   console.log("Data:", {
     username,
@@ -27,7 +27,7 @@ const handleUpdate = async (e) => {
 
   try {
     const { data } = await axios.put(
-      `https://freeapi.hashnode.space/api/user/${user?.id}`,
+      `https://freeapi.hashnode.space/api/user/${user._id}`,
       {
         username,
         email,
